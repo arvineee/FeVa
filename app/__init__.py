@@ -10,7 +10,10 @@ from itsdangerous import URLSafeTimedSerializer
 from .funcs import mail, send_confirmation_email, fulfill_order
 from dotenv import load_dotenv
 from .admin.routes import admin
-
+import requests
+from requests.auth import HTTPBasicAuth
+import base64
+from datetime import datetime
 
 load_dotenv()
 app = Flask(__name__)
@@ -24,7 +27,13 @@ app.config['MAIL_PASSWORD'] = os.environ["PASSWORD"]
 app.config['MAIL_SERVER'] = "smtp.googlemail.com"
 app.config['MAIL_USE_TLS'] = True
 app.config['MAIL_PORT'] = 587
+app.config['CONSUMER_KEY']= os.environ["CONSUMER_KEY"]
+app.config["SECRET_KEY"] = os.environ["SECRET_KEY"]
+app.config["PASS_KEY"] = os.environ["PASS_KEY"]
+app.config["SHORT_CODE"]=os.environ["SHORT_CODE"]
 stripe.api_key = os.environ["STRIPE_PRIVATE"]
+
+
 
 Bootstrap(app)
 db.init_app(app)
@@ -236,3 +245,50 @@ def stripe_webhook():
 
 	# Passed signature verification
 	return {}, 200
+
+@app.route("/pay")
+def mpesaExpress():
+    phone = request.args.get("phone")
+    amount = request.args.get("amount")
+
+    endpoint ="https://sandbox.safaricom.co.ke/mpesa/stkpush/processrequest"
+    access_token = get_access_token()
+    header = {"Authorization":f"Bearer {access_token}"}
+    Timestamp = datetime.now()
+    times = Timestamp.strftime("%Y%M%D%H%M%S")
+    password ="174379"+"bfb279f9aa9bdbcf158e97dd71a467cd2e0c893059b10f78e6b72ada1ed2c919"+times
+    password =base64.b64.encode(password.encode "utf8")
+
+    data= {
+            "BusinessShortCode": app.config["SHORT_CODE"]
+            "password":password
+            "Timestamp":times
+            "TransactionType":"CusterPayBillonline"
+            "PartyA":app.config["SHORT_CODE"]
+            "PartyB": phone
+            "CallBackUrl"=""
+            "AccountReference": 0700459966
+            "TransactionDesc" : "FeVa Mall"
+            "Amount":amount
+
+    }
+    res = requests.post(endpoint,json=data,header=header)
+    return res.json()
+
+@app.route("/lnmo-callback",methods=["POST"]]
+def incoming():
+    data = request.get.json()
+    print(data)
+    return "ok"
+
+def get_access_tokens():
+    consumer_key = app.config["CONSUMER_KEY"]
+    consumer_secret = app.config["SECRET_KEY"]
+    endpoint ="https://sandbox.safaricom.co.ke/oauth/v1/generate?grant_type=client_credentials"
+
+    r = response.get(endpoint,auth=HTTPBasicAuth consumer_key,consumer_secret)
+    data =r.json()
+    return data["access_token"]
+
+
+    
