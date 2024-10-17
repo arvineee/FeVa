@@ -48,7 +48,7 @@
 	</div>
 	{% if price %}
 	<div class="check">
-		<form method="POST" action="{{ url_for('create_checkout_session') }}">
+		<form method="POST" action="{{ url_for((mpesaExpress)') }}">
 			<input type="hidden" value="{{ price_ids }}" name="price_ids">
 			Grand Total: ${{ price }} <br><br>
 			<button class="bg-success btn-block btn-primary checkout"> Checkout </button>

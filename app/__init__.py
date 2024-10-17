@@ -41,6 +41,8 @@ mail.init_app(app)
 login_manager = LoginManager()
 login_manager.init_app(app)
 
+mydomain ="ngrok http --url=dogfish-pure-similarly.ngrok-free.app 80"
+
 with app.app_context():
 	db.create_all()
 
